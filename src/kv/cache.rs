@@ -1,9 +1,12 @@
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use crate::kv::byteview::ByteView;
 
 pub struct Cache {
-    mtx: Arc<Mutex<LRUCache>>
+    mtx: Arc<Mutex<LRUCache>>,
 }
 
 impl Cache {
@@ -90,24 +93,26 @@ impl LRUCache {
         }
     }
 
-    fn move_to_tail(&mut self, node: *mut Node) { unsafe {
-        if node == self.tail {
-            return;
+    fn move_to_tail(&mut self, node: *mut Node) {
+        unsafe {
+            if node == self.tail {
+                return;
+            }
+            // 断开当前位置
+            let p = (*node).prev;
+            let n = (*node).next;
+            if !p.is_null() {
+                (*p).next = n;
+            } else {
+                self.head = n;
+            }
+            if !n.is_null() {
+                (*n).prev = p;
+            }
+            // 挂到尾部
+            self.link_to_tail(node);
         }
-        // 断开当前位置
-        let p = (*node).prev;
-        let n = (*node).next;
-        if !p.is_null() {
-            (*p).next = n;
-        } else {
-            self.head = n;
-        }
-        if !n.is_null() {
-            (*n).prev = p;
-        }
-        // 挂到尾部
-        self.link_to_tail(node);
-    }}
+    }
 
     fn delete_by_lru(&mut self) {
         if self.head.is_null() {

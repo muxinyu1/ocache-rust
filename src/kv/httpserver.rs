@@ -5,7 +5,7 @@ use crate::kv::groupmanager::GroupManager;
 pub struct HttpServer {
     // self_ip: String,
     // port: i32,
-    server: Server
+    server: Server,
 }
 
 impl HttpServer {
@@ -30,11 +30,11 @@ impl HttpServer {
             match group_manager.get(group_name, key) {
                 Ok(view) => {
                     let _ = req.respond(Response::from_data(view).with_status_code(200));
-                },
+                }
                 Err(err) => {
                     let status = if err.contains("No such") { 404 } else { 500 };
                     let _ = req.respond(Response::from_string(err).with_status_code(status));
-                },
+                }
             };
         }
     }

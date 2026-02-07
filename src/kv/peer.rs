@@ -1,3 +1,4 @@
+use core::hash;
 use std::{rc::Rc, sync::Arc};
 
 use crate::kv::{
@@ -38,9 +39,10 @@ impl Peer {
             let rc: Rc<dyn PeerClient> = Rc::new(http_client);
             peers.push((base_url, Some(rc)));
         }
+        let peer_sicker = Arc::new(PeerSicker::new(hasher, replicas, &peers));
         for (group_name, _) in group_infos {
-            let peer_sicker = Arc::new(PeerSicker::new(hasher, replicas, &peers));
-            if let Err(err) = group_manager.register_peer_for_group(peer_sicker, group_name) {
+            if let Err(err) = group_manager.register_peer_for_group(peer_sicker.clone(), group_name)
+            {
                 panic!("{}", err);
             }
         }

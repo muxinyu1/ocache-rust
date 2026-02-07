@@ -1,10 +1,10 @@
-pub mod peer;
-mod cache;
 pub mod byteview;
-mod group;
+mod cache;
 pub mod dbgetter;
 pub mod error;
+mod group;
 mod groupmanager;
-mod peermanager;
 mod httpclient;
 mod httpserver;
+pub mod peer;
+mod peermanager;

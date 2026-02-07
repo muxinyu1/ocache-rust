@@ -1,6 +1,6 @@
 #[derive(Clone)]
 pub struct ByteView {
-    data: Vec<u8>
+    data: Vec<u8>,
 }
 
 impl ByteView {
@@ -8,11 +8,13 @@ impl ByteView {
         return self.data.len();
     }
     pub fn from_string(str: String) -> ByteView {
-        return ByteView { data: str.into_bytes() };
+        return ByteView {
+            data: str.into_bytes(),
+        };
     }
 }
 
-impl Into<Vec<u8>> for ByteView{
+impl Into<Vec<u8>> for ByteView {
     fn into(self) -> Vec<u8> {
         return self.data;
     }

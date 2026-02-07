@@ -22,12 +22,12 @@ fn crc32_hasher(key: &str) -> usize {
 }
 
 struct HashMapDbGetter {
-    db: HashMap<String, Vec<(String, String)>>
+    db: HashMap<String, Vec<(String, String)>>,
 }
 
 impl HashMapDbGetter {
     pub fn new(db: HashMap<String, Vec<(String, String)>>) -> Self {
-        return HashMapDbGetter{db};
+        return HashMapDbGetter { db };
     }
 }
 
@@ -41,7 +41,7 @@ impl DbGetter for HashMapDbGetter {
                     }
                 }
                 Err(format!("No such key: {}", key))
-            },
+            }
             None => Err(format!("No such group: {}", group_name)),
         }
     }
@@ -50,7 +50,7 @@ impl DbGetter for HashMapDbGetter {
 fn main() {
     env_logger::init();
     log::info!("ocahce starting...");
-    let mut db= HashMap::new();
+    let mut db = HashMap::new();
     const GROUP_NAMES: [&str; 4] = ["Scores", "Tsinghua", "Labs", "Schools"];
     const KEYS: [&str; 4] = ["mxy", "oldust", "rust", "c++"];
     const MIN_LEN: usize = 8;
@@ -74,6 +74,31 @@ fn main() {
 
     // print db
     println!("{:?}", db);
+
+    // 打印 Key 分布情况
+    println!("--- Key Distribution (Scores) ---");
+    let mut ring = Vec::new();
+    for i in 0..NUM_THREAD {
+        let url = format!("http://127.0.0.1:{}", BASE_PORT + i);
+        for r in 0..REPLICAS {
+            let vnode = format!("{} {}", url, r);
+            let h = crc32_hasher(&vnode);
+            ring.push((h, url.clone()));
+        }
+    }
+    ring.sort_by(|a, b| a.0.cmp(&b.0));
+
+    for key in KEYS {
+        let h = crc32_hasher(key);
+        let idx = ring.partition_point(|x| x.0 < h);
+        let peer = if idx >= ring.len() {
+            &ring[0].1
+        } else {
+            &ring[idx].1
+        };
+        println!("Key: {:<10} -> {}", key, peer);
+    }
+    println!("---------------------------------");
 
     let getter = Arc::new(HashMapDbGetter::new(db));
 
